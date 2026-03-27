@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monte Carlo Pi Simulation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #1e1e2f;
+            color: #ffffff;
+            margin: 0;
+            padding: 30px 20px;
+        }
+
+        h1 {
+            color: #60a5fa;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #9ca3af;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .layout-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 25px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .panel {
+            background-color: #2a2a40;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #3f3f5a;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1 1 300px;
+            max-width: 350px;
+        }
+
+        .explanation h2 {
+            color: #f472b6;
+            margin-top: 0;
+            font-size: 1.4em;
+            border-bottom: 2px solid #3f3f5a;
+            padding-bottom: 10px;
+        }
+
+        .explanation p {
+            color: #d1d5db;
+            line-height: 1.6;
+            font-size: 0.95em;
+            margin: 0;
+        }
+
+        .math-box {
+            background-color: #1e1e2f;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-family: monospace;
+            color: #4ade80;
+            font-size: 1.1em;
+            border: 1px dashed #4ade80;
+        }
+
+        .canvas-wrapper {
+            flex: 0 0 auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        canvas {
+            background-color: #2a2a40;
+            border: 2px solid #60a5fa;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            max-width: 100%;
+        }
+
+        .stat-box {
+            background-color: #1e1e2f;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #3f3f5a;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: bold;
+            font-family: monospace;
+            color: #4ade80;
+        }
+
+        .pi-value {
+            color: #f472b6;
+            font-size: 32px;
+            text-shadow: 0 0 10px rgba(244, 114, 182, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            background-color: #60a5fa;
+            color: #1e1e2f;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background-color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #3f3f5a;
+            color: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.stop {
+            background-color: #f87171;
+        }
+
+        button.stop:hover {
+            background-color: #ef4444;
+        }
+
+        .slider-container {
+            background-color: #1e1e2f;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #3f3f5a;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: #60a5fa;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Monte Carlo Pi Estimator</h1>
+    <div class="subtitle">Throwing random darts to calculate the value of &pi;</div>
+
+    <div class="layout-grid">
+        <div class="panel explanation">
+            <h2>How It Works</h2>
+            <p>Imagine a square dartboard with a circle drawn perfectly inside it. If you throw darts entirely at random, the chance of a dart landing inside the circle is equal to the ratio of the circle's area to the square's area.</p>
+            
+            <p>Area of Circle = <strong>&pi;r&sup2;</strong></p>
+            <p>Area of Square = <strong>(2r)&sup2; = 4r&sup2;</strong></p>
+            
+            <div class="math-box">
+                Ratio = &pi;r&sup2; / 4r&sup2; = &pi; / 4
+            </div>
+
+            <p>By keeping track of the total darts thrown and how many landed inside the circle, we can estimate &pi; using this simple formula:</p>
+
+            <div class="math-box" style="color: #60a5fa; border-color: #60a5fa;">
+                &pi; &approx; 4 &times; (Inside / Total)
+            </div>
+        </div>
+
+        <div class="canvas-wrapper">
+            <canvas id="simCanvas" width="400" height="400"></canvas>
+        </div>
+
+        <div class="panel">
+            <div class="stat-box">
+                <div class="stat-label">Estimated Pi (&pi;)</div>
+                <div class="stat-value pi-value" id="piVal">0.000000</div>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <div class="stat-box" style="flex: 1;">
+                    <div class="stat-label">Total Points</div>
+                    <div class="stat-value" id="totalPts" style="font-size: 20px;">0</div>
+                </div>
+                <div class="stat-box" style="flex: 1;">
+                    <div class="stat-label">Inside</div>
+                    <div class="stat-value" style="color:#60a5fa; font-size: 20px;" id="insidePts">0</div>
+                </div>
+            </div>
+
+            <div class="slider-container">
+                <div class="slider-header">
+                    <span class="stat-label" style="margin:0;">Target Total Points</span>
+                    <span id="targetDisplay" style="color: #60a5fa; font-weight: bold; font-family: monospace;">10,000</span>
+                </div>
+                <input type="range" id="targetSlider" min="1000" max="5000000" step="1000" value="10000" oninput="updateTargetDisplay()">
+            </div>
+
+            <div class="controls">
+                <button onclick="toggleSimulation()" id="startBtn">Start Simulation</button>
+                <button class="stop" onclick="resetSimulation()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+        const radius = width / 2;
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        let totalPoints = 0;
+        let insideCircle = 0;
+        let isRunning = false;
+        let animationId;
+        
+        // Increased speed so 5 million points doesn't take forever
+        const pointsPerFrame = 15000; 
+
+        function updateTargetDisplay() {
+            const sliderVal = document.getElementById('targetSlider').value;
+            document.getElementById('targetDisplay').innerText = parseInt(sliderVal).toLocaleString();
+        }
+
+        function drawBackground() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function addPoints(count) {
+            for (let i = 0; i < count; i++) {
+                const x = Math.random() * width;
+                const y = Math.random() * height;
+                const dist = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+
+                totalPoints++;
+
+                if (dist <= radius) {
+                    insideCircle++;
+                    ctx.fillStyle = '#60a5fa'; // Blue for inside
+                } else {
+                    ctx.fillStyle = '#f87171'; // Red for outside
+                }
+
+                ctx.fillRect(x, y, 1, 1);
+            }
+        }
+
+        function updateUI() {
+            const piEstimate = totalPoints === 0 ? 0 : 4 * (insideCircle / totalPoints);
+            
+            document.getElementById('totalPts').innerText = totalPoints.toLocaleString();
+            document.getElementById('insidePts').innerText = insideCircle.toLocaleString();
+            
+            if (!isNaN(piEstimate)) {
+                document.getElementById('piVal').innerText = piEstimate.toFixed(6);
+            }
+        }
+
+        function simulate() {
+            if (!isRunning) return;
+            
+            const target = parseInt(document.getElementById('targetSlider').value);
+            const remaining = target - totalPoints;
+
+            if (remaining <= 0) {
+                // Target reached, stop simulation
+                isRunning = false;
+                const btn = document.getElementById('startBtn');
+                btn.innerText = 'Completed';
+                btn.disabled = true; // Disable button until reset or slider change
+                btn.style.backgroundColor = '#4ade80'; // Green to indicate success
+                return;
+            }
+
+            // Add points up to the animation speed limit, or exactly what is left
+            const pointsToAdd = Math.min(pointsPerFrame, remaining);
+            
+            addPoints(pointsToAdd); 
+            updateUI();
+            
+            animationId = requestAnimationFrame(simulate);
+        }
+
+        function toggleSimulation() {
+            const btn = document.getElementById('startBtn');
+            const target = parseInt(document.getElementById('targetSlider').value);
+            
+            // If starting after already finishing a run, reset first
+            if (totalPoints >= target) {
+                resetSimulation();
+            }
+
+            isRunning = !isRunning;
+            
+            if (isRunning) {
+                btn.innerText = 'Pause Simulation';
+                btn.style.backgroundColor = '#facc15'; 
+                simulate();
+            } else {
+                btn.innerText = 'Resume Simulation';
+                btn.style.backgroundColor = '#60a5fa'; 
+                cancelAnimationFrame(animationId);
+            }
+        }
+
+        function resetSimulation() {
+            isRunning = false;
+            cancelAnimationFrame(animationId);
+            
+            totalPoints = 0;
+            insideCircle = 0;
+            
+            drawBackground();
+            updateUI();
+            
+            const btn = document.getElementById('startBtn');
+            btn.innerText = 'Start Simulation';
+            btn.disabled = false;
+            btn.style.backgroundColor = '#60a5fa';
+            document.getElementById('piVal').innerText = '0.000000';
+        }
+
+        // Allow restarting if they change the slider after finishing
+        document.getElementById('targetSlider').addEventListener('input', () => {
+            const btn = document.getElementById('startBtn');
+            if (btn.innerText === 'Completed') {
+                btn.innerText = 'Resume Simulation';
+                btn.disabled = false;
+                btn.style.backgroundColor = '#60a5fa';
+            }
+        });
+
+        // Initialize setup on load
+        drawBackground();
+        updateTargetDisplay();
+    </script>
+</body>
+</html>
