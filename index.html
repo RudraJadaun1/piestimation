@@ -241,6 +241,11 @@
         </div>
     </div>
 
+    <!-- Your Signature -->
+    <div style="margin-top: 30px; text-align: center; font-size: 1em; color: #60a5fa; opacity: 0.8;">
+         Programmed by Rudra Pratap Singh 
+    </div>
+
     <script>
         const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
@@ -255,7 +260,6 @@
         let isRunning = false;
         let animationId;
         
-        // Increased speed so 5 million points doesn't take forever
         const pointsPerFrame = 15000; 
 
         function updateTargetDisplay() {
@@ -282,9 +286,9 @@
 
                 if (dist <= radius) {
                     insideCircle++;
-                    ctx.fillStyle = '#60a5fa'; // Blue for inside
+                    ctx.fillStyle = '#60a5fa';
                 } else {
-                    ctx.fillStyle = '#f87171'; // Red for outside
+                    ctx.fillStyle = '#f87171';
                 }
 
                 ctx.fillRect(x, y, 1, 1);
@@ -309,16 +313,14 @@
             const remaining = target - totalPoints;
 
             if (remaining <= 0) {
-                // Target reached, stop simulation
                 isRunning = false;
                 const btn = document.getElementById('startBtn');
                 btn.innerText = 'Completed';
-                btn.disabled = true; // Disable button until reset or slider change
-                btn.style.backgroundColor = '#4ade80'; // Green to indicate success
+                btn.disabled = true;
+                btn.style.backgroundColor = '#4ade80';
                 return;
             }
 
-            // Add points up to the animation speed limit, or exactly what is left
             const pointsToAdd = Math.min(pointsPerFrame, remaining);
             
             addPoints(pointsToAdd); 
@@ -331,7 +333,6 @@
             const btn = document.getElementById('startBtn');
             const target = parseInt(document.getElementById('targetSlider').value);
             
-            // If starting after already finishing a run, reset first
             if (totalPoints >= target) {
                 resetSimulation();
             }
@@ -366,7 +367,6 @@
             document.getElementById('piVal').innerText = '0.000000';
         }
 
-        // Allow restarting if they change the slider after finishing
         document.getElementById('targetSlider').addEventListener('input', () => {
             const btn = document.getElementById('startBtn');
             if (btn.innerText === 'Completed') {
@@ -376,7 +376,6 @@
             }
         });
 
-        // Initialize setup on load
         drawBackground();
         updateTargetDisplay();
     </script>
